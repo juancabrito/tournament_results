@@ -15,19 +15,21 @@ CREATE TABLE Matches (
   id serial PRIMARY KEY
 );
 
+-- View for counting matches by player.
 CREATE VIEW v_matches_count AS
 	SELECT Players.id, count(Matches.id) AS matches
 	FROM Players LEFT JOIN Matches
   ON Matches.winner_id = Players.id OR Matches.loser_id = Players.id
 	GROUP BY Players.id ORDER BY matches;
 
+-- View for computing wins by player.
 CREATE VIEW v_score AS
   SELECT Players.id, Players.name, count(Matches.winner_id) AS wins
   FROM Players LEFT JOIN Matches
   ON Matches.winner_id = Players.id
-  GROUP BY Players.id
-  ORDER BY wins DESC;
+  GROUP BY Players.id ORDER BY wins DESC;
 
+-- View for standings, including player's id, name, wins and matches played.
 CREATE VIEW v_standings AS
   SELECT v_score.id, v_score.name, v_score.wins, v_matches_count.matches
   FROM v_score JOIN v_matches_count

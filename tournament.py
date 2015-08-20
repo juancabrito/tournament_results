@@ -144,8 +144,7 @@ def swissPairings():
     else:
         """Swiss pairing process"""
 
-        unpaired = standings
-        return pairing(unpaired)
+        return pairing(standings)
 
 
 def pairing(unpaired, pairs=[]):

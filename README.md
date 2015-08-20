@@ -1,5 +1,5 @@
 # Tournament Results
-This is a programming with SQL simple exercise. 
+This is a programming with SQL simple exercise.
 
 A Python module that uses the PostgreSQL database to keep track of players and matches in a game tournament.
 
@@ -9,9 +9,25 @@ This project has two parts: defining the database schema (SQL table definitions)
 
 ## Testing the components
 
+To create the database with its tables and views run:
+
+```bash
+$ psql
+=> \i tournament
+```
+This will create the "tournament" database and two tables:
+
+- Players
+- Matches
+
+Also three views from those tables:
+
+- v_matches_count
+- v_score
+- v_standings
+
 To test the components just run:
 
 ```python
 $ python tournament_test.py
 ```
-
