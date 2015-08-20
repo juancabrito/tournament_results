@@ -13,7 +13,7 @@ To create the database with its tables and views run:
 
 ```bash
 $ psql
-=> \i tournament
+=> \i tournament.sql
 ```
 This will create the "tournament" database and two tables:
 
