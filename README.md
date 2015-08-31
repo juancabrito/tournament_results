@@ -15,16 +15,6 @@ To create the database with its tables and views run:
 $ psql
 => \i tournament.sql
 ```
-This will create the "tournament" database and two tables:
-
-- Players
-- Matches
-
-Also three views from those tables:
-
-- v_matches_count
-- v_score
-- v_standings
 
 To test the components just run:
 
