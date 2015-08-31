@@ -33,11 +33,11 @@ CREATE VIEW v_registered_players AS
   ORDER BY tournament ASC;
 
 CREATE VIEW v_matches_count AS
-	SELECT Players.id, count(Matches.id) AS matches, RegisteredPlayers.tournament
-	FROM Players LEFT JOIN Matches
+  SELECT Players.id, count(Matches.id) AS matches, RegisteredPlayers.tournament
+  FROM Players LEFT JOIN Matches
   ON Matches.winner_id = Players.id OR Matches.loser_id = Players.id
   JOIN RegisteredPlayers ON RegisteredPlayers.player = Players.id AND RegisteredPlayers.tournament = Matches.tournament
-	GROUP BY Players.id, RegisteredPlayers.tournament
+  GROUP BY Players.id, RegisteredPlayers.tournament
   ORDER BY tournament ASC;
 
 CREATE VIEW v_score AS
@@ -54,11 +54,11 @@ CREATE VIEW v_standings AS
   v_matches_count.matches, v_score.tournament
   FROM v_score JOIN v_matches_count
   ON v_score.tournament = v_matches_count.tournament AND v_score.id = v_matches_count.id
-	ORDER BY tournament ASC;
+  ORDER BY tournament ASC;
 
 CREATE VIEW v_tournaments AS
   SELECT v_standings.id, v_standings.name, v_standings.wins,
   v_standings.matches, v_standings.tournament, Tournaments.active
   FROM v_standings JOIN Tournaments
   ON v_standings.tournament = Tournaments.id
-	ORDER BY tournament ASC;
+  ORDER BY tournament ASC;
