@@ -16,17 +16,6 @@ CREATE TABLE Matches (
   round  int
 );
 
---CREATE VIEW v_matches_count AS
---  SELECT Players.id,
---  SUM(
---    CASE WHEN Matches.winner_id = Players.id
---    OR Matches.loser_id = Players.id THEN 1 ELSE 0 END
---  ) AS matches
---  FROM Players LEFT JOIN Matches
---  ON Matches.winner_id = Players.id OR Matches.loser_id = Players.id
---  JOIN RegisteredPlayers ON RegisteredPlayers.player = Players.id
---  GROUP BY Players.id;
-
 CREATE VIEW v_matches_count AS
   SELECT RegisteredPlayers.name,
   SUM(

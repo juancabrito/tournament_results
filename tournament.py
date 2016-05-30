@@ -197,14 +197,18 @@ def swissPairings():
 def pairing(unpaired, pairs=[]):
     """Simple pairing helper function"""
 
-    s = unpaired[:2]
-    
+    db, cursor = connect()
+
+    query = "SELECT id, name FROM v_standings;"
+    cursor.execute(query,)
+    standings = cursor.fetchall()
 
     if len(unpaired) == 2:
-        pairs.append((s[0][0], s[0][1], s[1][0], s[1][1]))
+        pairs.append((unpaired[0][0], unpaired[0][1], unpaired[1][0], unpaired[1][1]))
 
     else:
-        pairs.append((s[0][0], s[0][1], s[1][0], s[1][1]))
+        if unpaired[0][0]
+        pairs.append((unpaired[0][0], unpaired[0][1], unpaired[1][0], unpaired[1][1]))
         pairing(unpaired[2:], pairs)
         
 
