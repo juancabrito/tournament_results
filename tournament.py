@@ -129,13 +129,11 @@ def reportMatch(winner, loser):
 
     if rounds == 0:
         roundn = matches_exist / players + 1
-        print "round %s" % roundn
         query = "INSERT INTO Matches VALUES (%s, %s, %s);"
         parameter = (winner, loser, roundn)
         cursor.execute(query, parameter)
     else:
         roundn = int(matches_exist / players + 1)
-        print "Round %s" % roundn
         query = "INSERT INTO Matches VALUES (%s, %s, %s);"
         parameter = (winner, loser, roundn)
         cursor.execute(query, parameter)
@@ -193,18 +191,21 @@ def swissPairings():
     else:
         """Swiss pairing process"""
         db.close
-        return pairing(standings)
+        return pairing(standings, [])
 
 
 def pairing(unpaired, pairs=[]):
     """Simple pairing helper function"""
 
     s = unpaired[:2]
+    
 
     if len(unpaired) == 2:
         pairs.append((s[0][0], s[0][1], s[1][0], s[1][1]))
+
     else:
         pairs.append((s[0][0], s[0][1], s[1][0], s[1][1]))
         pairing(unpaired[2:], pairs)
+        
 
     return pairs
