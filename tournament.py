@@ -12,12 +12,24 @@ def connect():
     """Connect to the PostgreSQL database.  Returns a database connection."""
     return psycopg2.connect("dbname=tournament")
 
+def connect(database_name="tournament"):
+    """Connect to the PostgreSQL database.  Returns a database connection and a cursor."""
+    try:
+        db = psycopg2.connect("dbname={}".format(database_name))
+        cursor = db.cursor()
+        return db, cursor
+    except:
+        print("Error connecting database")
+
+
 
 def deleteMatches():
     """Remove all the match records from the database."""
-    db = connect()
-    c = db.cursor()
-    c.execute("DELETE FROM Matches")
+
+    db, cursor = connect()
+
+    query = "DELETE FROM Matches"
+    cursor.execute(query)
     db.commit()
     db.close()
 
@@ -25,10 +37,12 @@ def deleteMatches():
 def deletePlayers():
     """Remove all the player records from the database."""
 
-    db = connect()
-    c = db.cursor()
-    c.execute("DELETE FROM Matches")
-    c.execute("DELETE FROM Players")
+    db, cursor = connect()
+
+    query1 = "DELETE FROM Matches;"
+    query2 = "DELETE FROM RegisteredPlayers;"
+    cursor.execute(query1)
+    cursor.execute(query2)
     db.commit()
     db.close()
 
@@ -36,30 +50,13 @@ def deletePlayers():
 def countPlayers():
     """Returns the number of players currently registered."""
 
-    db = connect()
-    c = db.cursor()
-    c.execute("SELECT count(*) FROM players")
-    count = c.fetchone()
+    db, cursor = connect()
+
+    query = "SELECT count(*) FROM RegisteredPlayers"
+    cursor.execute(query,)
+    count = cursor.fetchone()
     db.close()
     return int(count[0])
-
-def registerTournament(active):
-    """Adds a player to the tournament database.
-
-    The database assigns a unique serial id number for the player.  (This
-    should be handled by your SQL database schema, not in your Python code.)
-
-    Args:
-      name: the player's full name (need not be unique).
-    """
-
-    db = connect()
-    c = db.cursor()
-    c.execute(
-        "INSERT INTO Tournaments VALUES('%s')" % active
-    )
-    db.commit()
-    db.close
 
 def registerPlayer(name):
     """Adds a player to the tournament database.
@@ -72,33 +69,15 @@ def registerPlayer(name):
       tournament: the tournament the player is signing in.
     """
 
-    db = connect()
-    c = db.cursor()
-    name = bleach.clean(name).replace("'", " ")
-    c.execute(
-        "INSERT INTO Players (name) VALUES('%s')" % name
-    )
+    db, cursor = connect()
+
+    query = "INSERT INTO RegisteredPlayers (name) VALUES (%s);"
+    parameter = (name,)
+    cursor.execute(query, parameter)
+
     db.commit()
     db.close
 
-def registerInTournament(player, tournament):
-    """Adds a player to the tournament database.
-
-    The database assigns a unique serial id number for the player.  (This
-    should be handled by your SQL database schema, not in your Python code.)
-
-    Args:
-      name: the player's full name (need not be unique).
-      tournament: the tournament the player is signing in.
-    """
-
-    db = connect()
-    c = db.cursor()
-    c.execute(
-        "INSERT INTO RegisteredPlayers (player, tournament) VALUES('%s', '%s')" % (player, tournament)
-    )
-    db.commit()
-    db.close
 
 def playerStandings():
     """Returns a list of the players and their win records, sorted by wins.
@@ -114,35 +93,57 @@ def playerStandings():
         matches: the number of matches the player has played
     """
 
-    db = connect()
-    c = db.cursor()
-    c.execute("SELECT * FROM v_standings")
+    db, cursor = connect()
+
+    query = "SELECT * FROM v_standings;"
+    
+    cursor.execute(query,)
     db.close
 
-    standings = [(row[0], row[1], row[2], row[3]) for row in c.fetchall()]
+    standings = [(row[0], row[1], row[2], row[3]) for row in cursor.fetchall()]
     return standings
 
 
-def reportMatch(winner, loser, tournament):
+def reportMatch(winner, loser):
     """Records the outcome of a single match between two players.
 
     Args:
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
-      tournament:  the id number of the tournament the match belongs to
+      roundn:  the round being played
     """
 
-    db = connect()
-    c = db.cursor()
+    db, cursor = connect()
 
-    c.execute(
-        "INSERT INTO Matches VALUES(%s, %s, %s)" % (winner, loser, tournament)
-    )
+    query1 = "SELECT count(*) FROM Matches;"
+    cursor.execute(query1,)
+    matches_exist = cursor.fetchone()
+    matches_exist = matches_exist[0]
+    
+    query2 = "SELECT count(*) FROM RegisteredPlayers;"
+    cursor.execute(query2,)
+    players = cursor.fetchone()
+    players = players[0]/2
+
+    rounds = matches_exist % players
+
+    if rounds == 0:
+        roundn = matches_exist / players + 1
+        query = "INSERT INTO Matches VALUES (%s, %s, %s);"
+        parameter = (winner, loser, roundn)
+        cursor.execute(query, parameter)
+    else:
+        roundn = int(matches_exist / players + 1)
+        query = "INSERT INTO Matches VALUES (%s, %s, %s);"
+        parameter = (winner, loser, roundn)
+        cursor.execute(query, parameter)
+
+
     db.commit()
     db.close
 
 
-def swissPairings(tournament):
+def swissPairings():
     """Returns a list of pairs of players for the next round of a match.
 
     Assuming that there are an even number of players registered, each player
@@ -158,86 +159,53 @@ def swissPairings(tournament):
         name2: the second player's name
     """
 
-    db = connect()
-    c = db.cursor()
+    db, cursor = connect()
 
-    c.execute("SELECT active FROM Tournaments WHERE id = '%s'" % tournament)
-    active = c.fetchone()
+    query = "SELECT id, name FROM v_standings;"
+    cursor.execute(query,)
+    standings = cursor.fetchall()
 
-    if not active or active == False:
-        print "Error: Tournament doesn't exist"
-    else:
-        c.execute(
-            "SELECT id, name FROM v_standings WHERE tournament = '%s'" % tournament
-        )
-        standings = c.fetchall()
 
-        c.execute(
-            "SELECT id, name FROM v_standings WHERE wins >= 1 AND tournament = '%s'" % tournament
-        )
-        played = c.fetchall()
+    query = "SELECT id, name FROM v_standings WHERE wins >= 1;"
+    cursor.execute(query,)
+    played = cursor.fetchall()
 
-        if not played:
-            """Random pairing if there's no matches yet"""
 
-            c.execute(
-                "SELECT name, player FROM v_registered_players WHERE tournament = '%s'" % tournament
-            )
+    if not played:
+        """Random pairing if there's no matches yet"""
+        
+        query = "SELECT * FROM RegisteredPlayers;"
+        cursor.execute(query,)
 
-            ps = c.fetchall()
-            db.close
-            if ps:
-                random.shuffle(ps)
-                pairs = []
-                for pair in zip(ps[len(ps)/2:], ps[:len(ps)/2]):
-                    pairs.append((pair[0][1], pair[0][0], pair[1][1], pair[1][0]))
-                return pairs
-            else:
-                print "No players registered yet"
-
+        ps = cursor.fetchall()
+        db.close
+        if ps:
+            random.shuffle(ps)
+            pairs = []
+            for pair in zip(ps[len(ps)/2:], ps[:len(ps)/2]):
+                pairs.append((pair[0][1], pair[0][0], pair[1][1], pair[1][0]))
+            return pairs
         else:
-            """Swiss pairing process"""
-            return pairing(standings)
+            print "No players registered yet"
 
-
-
-
-    #c.execute("SELECT id, name, tournament FROM v_standings")
-    #standings = c.fetchall()
-
-    #c.execute("SELECT id, name, tournament FROM v_standings WHERE wins >= 1)
-    #played = c.fetchall()
-
-    #if not played:
-    #    """Random pairing if there's no matches yet"""
-
-    #    c.execute("SELECT * FROM Players")
-
-    #    ps = c.fetchall()
-    #    db.close
-    #    if ps:
-    #        random.shuffle(ps)
-    #        pairs = []
-    #        for pair in zip(ps[len(ps)/2:], ps[:len(ps)/2]):
-    #            pairs.append((pair[0][1], pair[0][0], pair[1][1], pair[1][0]))
-    #        return pairs
-    #    else:
-    #        print "No players registered yet"
-
-    #else:
-    #    """Swiss pairing process"""
-    #    return pairing(standings)
+    else:
+        """Swiss pairing process"""
+        db.close
+        return pairing(standings, [])
 
 
 def pairing(unpaired, pairs=[]):
     """Simple pairing helper function"""
 
     s = unpaired[:2]
+    
 
     if len(unpaired) == 2:
         pairs.append((s[0][0], s[0][1], s[1][0], s[1][1]))
+
     else:
         pairs.append((s[0][0], s[0][1], s[1][0], s[1][1]))
         pairing(unpaired[2:], pairs)
+        
 
     return pairs
