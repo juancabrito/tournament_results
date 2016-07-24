@@ -28,7 +28,7 @@ def deleteMatches():
 
     db, cursor = connect()
 
-    query = "DELETE FROM Matches"
+    query = "TRUNCATE Matches"
     cursor.execute(query)
     db.commit()
     db.close()
@@ -39,10 +39,8 @@ def deletePlayers():
 
     db, cursor = connect()
 
-    query1 = "DELETE FROM Matches;"
-    query2 = "DELETE FROM RegisteredPlayers;"
-    cursor.execute(query1)
-    cursor.execute(query2)
+    query = "TRUNCATE Matches, RegisteredPlayers;"
+    cursor.execute(query)
     db.commit()
     db.close()
 
@@ -61,12 +59,10 @@ def countPlayers():
 def registerPlayer(name):
     """Adds a player to the tournament database.
 
-    The database assigns a unique serial id number for the player.  (This
-    should be handled by your SQL database schema, not in your Python code.)
+    The database assigns a unique serial id number for the player.
 
     Args:
       name: the player's full name (need not be unique).
-      tournament: the tournament the player is signing in.
     """
 
     db, cursor = connect()
@@ -110,7 +106,6 @@ def reportMatch(winner, loser):
     Args:
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
-      roundn:  the round being played
     """
 
     db, cursor = connect()
