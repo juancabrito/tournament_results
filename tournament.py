@@ -5,7 +5,6 @@
 
 import psycopg2
 import random
-import bleach
 
 
 def connect():
@@ -55,6 +54,7 @@ def countPlayers():
     count = cursor.fetchone()
     db.close()
     return int(count[0])
+
 
 def registerPlayer(name):
     """Adds a player to the tournament database.
@@ -124,13 +124,13 @@ def reportMatch(winner, loser):
 
     if rounds == 0:
         roundn = matches_exist / players + 1
-        query = "INSERT INTO Matches VALUES (%s, %s, %s);"
-        parameter = (winner, loser, roundn)
+        query = "INSERT INTO Matches VALUES (%s, %s);"
+        parameter = (winner, loser)
         cursor.execute(query, parameter)
     else:
         roundn = int(matches_exist / players + 1)
-        query = "INSERT INTO Matches VALUES (%s, %s, %s);"
-        parameter = (winner, loser, roundn)
+        query = "INSERT INTO Matches VALUES (%s, %s);"
+        parameter = (winner, loser)
         cursor.execute(query, parameter)
 
 
